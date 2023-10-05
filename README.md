@@ -5,7 +5,7 @@ Owner : Chaw Thiri San
 
 ## Topics 
 ### TCP : Transmission Control Protocol
-* [TCP sever setup]()
+* [TCP Server Setup]()
 
 ### UDP : User Datagram Protocol    
 * [UDP Server Setup](https://github.com/chaw-thiri/Computer-Network/tree/main/UDP/UDP%20server%20setup)
