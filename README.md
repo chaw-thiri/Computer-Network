@@ -1,7 +1,7 @@
 # Computer-Network
-Third semester course at Inha University     
+   
 Date Created : Sept the 5th, 2023
-Owner : Chaw Thiri San
+
 
 ## Topics 
 ### TCP : Transmission Control Protocol
