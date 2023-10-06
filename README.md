@@ -5,7 +5,10 @@ Date Created : Sept the 5th, 2023
 
 ## Topics 
 ### TCP : Transmission Control Protocol
-* [TCP Server Setup]()
+* [TCP Server Setup](https://github.com/chaw-thiri/Computer-Network/tree/main/TCP/server%20and%20client%20setup)
+* [TCP Client Setup](https://github.com/chaw-thiri/Computer-Network/blob/main/TCP/server%20and%20client%20setup/client_setup.py)
+* [Server with multithreading](https://github.com/chaw-thiri/Computer-Network/tree/main/TCP/setting_up_tcp_server_with_multithreading)
+* [Test latency, bandwidth and transder rate](https://github.com/chaw-thiri/Computer-Network/tree/main/TCP/test_latency)
 
 ### UDP : User Datagram Protocol    
 * [UDP Server Setup](https://github.com/chaw-thiri/Computer-Network/tree/main/UDP/UDP%20server%20setup)
