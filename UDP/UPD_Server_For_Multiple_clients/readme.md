@@ -13,4 +13,6 @@
 > Reds are from client 1 and blues are from client 2
 ![image](https://github.com/chaw-thiri/Computer-Network/assets/113085742/dc24f7df-8a79-4bd1-bc71-fa98b991e9f3)
 
+p.s. The name of the folder should be UDP_Server_For_Multiple_Clients
+
 
