@@ -12,6 +12,6 @@ Date Created : Sept the 5th, 2023
 
 ### UDP : User Datagram Protocol    
 * [UDP Server Setup and latency calculation](https://github.com/chaw-thiri/Computer-Network/tree/main/UDP/UDP%20server%20setup)
-* [UPD Server for multiple clients]()
+* [UPD Server for multiple clients](https://github.com/chaw-thiri/Computer-Network/tree/main/UDP/UPD_Server_For_Multiple_clients)
 * [Measuring throughout, bandwidth and transfer rate by uploading and downloading files](https://github.com/chaw-thiri/Computer-Network/blob/main/UDP/Throughput_Bandwidth_and_transferrate/readme.md)
   
