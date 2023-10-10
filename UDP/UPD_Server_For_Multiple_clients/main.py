@@ -14,7 +14,7 @@ def handle_client(client_socket,client_address):
     data, addr = client_socket.recvfrom(1024)   # port 1024 ~49151 are reserved for user server application
     print(f"Received {data} from {addr}")
     # send data back to the client
-    client_socket.sendto(data,addr)
+    server_socket.sendto(data,addr)
 
 # main function to handle incoming connections (handle multiple clients using threading)
 def main():
