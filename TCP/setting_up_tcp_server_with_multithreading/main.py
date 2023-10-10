@@ -21,7 +21,7 @@ def setup_tcp_server():
         print(f"Accepted connection from {client_address}")
 
         # Start a new thread to handle the client
-        # client_handle will handle a new client as a new thread and this will enable the server to handle mulitple clients at the same time
+        # client_handle will assign a seperate thread or every incoming connection, thereby allowing the server to handle multiple clients simultaneously
         client_handler = threading.Thread(target=handle_client, args=(client_socket,))
         client_handler.start()
 
