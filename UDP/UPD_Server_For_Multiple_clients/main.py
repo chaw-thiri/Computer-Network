@@ -10,7 +10,7 @@ port = 12345
 server_socket.bind((host, port))   # bind the socket to local host on port 12345
 
 def handle_client(client_socket,client_address):
-    """handle the incoming data and echo it back to the client + latency calculation"""
+    """handle the incoming data and echo it back to the client"""
     data, addr = client_socket.recvfrom(1024)   # port 1024 ~49151 are reserved for user server application
     print(f"Received {data} from {addr}")
     # send data back to the client
