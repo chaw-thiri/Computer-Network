@@ -29,35 +29,58 @@ class Peer:
         self.send_date(data)
 
     def send_data(self, data, target=None, is_image=False):
+        
         for connection in self.connections:
             try:
                 if target is None or connection == target:
                     if is_image:
-                        connection.sendall(base64.b64encode(data))
+                        size = len(data)
+                        connection.sendall(b"image:" + size.to_bytes(4, byteorder='big'))
+                        connection.sendall(data)
                     else:
                         connection.sendall(data.encode())
             except socket.error as e:
                 print(f"Failed to send data. Error: {e}")
                 self.connections.remove(connection)
 
+
     def handle_client(self, connection, address):
-        while True:
+         while True:
             try:
                 data = connection.recv(1024)
                 if not data:
                     break
                 if data.startswith(b"image:"):
-                    image_data = base64.b64decode(data[len("image:"):])
-                    # Handle the image_data as needed, e.g., save to a file or process it
-                    print(f"Received image from {address}")
+                    header = connection.recv(4)
+                    size = int.from_bytes(header, byteorder='big')
+                    print(f"Received image header from {address}: {size} bytes")
+
+                    image_data = b""
+                    while size > 0:
+                        data_chunk = connection.recv(min(size, 1024))
+                        if not data_chunk:
+                            break
+                        image_data += data_chunk
+                        size -= len(data_chunk)
+                    self.save_image(image_data, address)
+                    print(f"Received image data from {address}: {len(image_data)} bytes")
                 else:
                     print(f"Received data from {address}: {data.decode()}")
             except socket.error:
                 break
 
-        print(f"Connection from {address} closed.")
-        self.connections.remove(connection)
-        connection.close()
+            print(f"Connection from {address} closed.")
+            self.connections.remove(connection)
+            connection.close()
+
+
+
+    
+    def save_image(self, image_data, address):
+        image_filename = f"received_image_{address[0]}_{address[1]}.png"
+        with open(image_filename, "wb") as image_file:
+            image_file.write(image_data)
+        print(f"Image saved as {image_filename}")
     
     def start(self):
         listen_thread = threading.Thread(target=self.listen)
@@ -115,6 +138,7 @@ if __name__ == "__main__":
                 print("Image file not found.")
 
         elif choice == '3':
+            
             message = input("Enter broadcast message: ")
             node2.broadcast(f"Broadcast from node2: {message}")
 
