@@ -1,7 +1,6 @@
 import socket
 import threading
-import base64 # for sending images 
-import time
+import os
 
 class Peer:
     def __init__(self, host, port):
@@ -9,6 +8,7 @@ class Peer:
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connections = []
+        self.threads = []  # for os
 
     def connect(self, peer_host, peer_port):
         connection = socket.create_connection((peer_host, peer_port))
@@ -25,66 +25,69 @@ class Peer:
             self.connections.append(connection)
             print(f"Accepted connection from {address}")
             threading.Thread(target=self.handle_client, args=(connection, address)).start()
-    def broadcast(self,data):
-        self.send_date(data)
 
-    def send_data(self, data, target=None, is_image=False):
-        
+    def send_data(self, data, target=None):
+        connections_to_remove = []
+
         for connection in self.connections:
             try:
                 if target is None or connection == target:
-                    if is_image:
-                        size = len(data)
-                        connection.sendall(b"image:" + size.to_bytes(4, byteorder='big'))
-                        connection.sendall(data)
-                    else:
-                        connection.sendall(data.encode())
+                    connection.sendall(data.encode())
             except socket.error as e:
                 print(f"Failed to send data. Error: {e}")
-                self.connections.remove(connection)
+                connections_to_remove.append(connection)
 
+        self.connections = [conn for conn in self.connections if conn not in connections_to_remove]
+
+    def broadcast(self, data):
+        self.send_data(data)
 
     def handle_client(self, connection, address):
-         while True:
-            try:
-                data = connection.recv(1024)
-                if not data:
+        file_path = "received_img.jpg"
+
+        with open(file_path, "wb") as file:
+            while True:
+                try:
+                    data = connection.recv(2048)
+                    if not data:
+                        break
+                    file.write(data)
+                except socket.error:
                     break
-                if data.startswith(b"image:"):
-                    header = connection.recv(4)
-                    size = int.from_bytes(header, byteorder='big')
-                    print(f"Received image header from {address}: {size} bytes")
 
-                    image_data = b""
-                    while size > 0:
-                        data_chunk = connection.recv(min(size, 1024))
-                        if not data_chunk:
-                            break
-                        image_data += data_chunk
-                        size -= len(data_chunk)
-                    self.save_image(image_data, address)
-                    print(f"Received image data from {address}: {len(image_data)} bytes")
-                else:
-                    print(f"Received data from {address}: {data.decode()}")
-            except socket.error:
-                break
+        print(f"File received from {address}. Saved as {file_path}")
+        self.connections.remove(connection)
+        connection.close()
 
-            print(f"Connection from {address} closed.")
-            self.connections.remove(connection)
-            connection.close()
-
-
-
-    
-    def save_image(self, image_data, address):
-        image_filename = f"received_image_{address[0]}_{address[1]}.png"
-        with open(image_filename, "wb") as image_file:
-            image_file.write(image_data)
-        print(f"Image saved as {image_filename}")
-    
     def start(self):
         listen_thread = threading.Thread(target=self.listen)
+        self.threads.append(listen_thread)
         listen_thread.start()
+
+    def recv_file(self, sender):
+        with open("received_img.jpg", "wb") as file:
+            while True:
+                image_chunk = sender.socket.recv(2048)
+                if not image_chunk:
+                    break
+                file.write(image_chunk)
+
+    def send_file(self, target):
+        file_path = "snow.jpg"
+        try:
+            with open(file_path, "rb") as file:
+                for image_chunk in iter(lambda: file.read(2048), b''):
+                    try:
+                        target.send(image_chunk)
+                    except socket.error as e:
+                        print(f"Failed to send file data. Error: {e}")
+                        break
+        except FileNotFoundError:
+            print(f"File not found: {file_path}")
+        except Exception as e:
+            print(f"Error reading file: {e}")
+        finally:
+            target.close()  # Close the connection once the file is sent
 
 # Example usage:
 if __name__ == "__main__":
@@ -98,23 +101,21 @@ if __name__ == "__main__":
     node3.start()
 
     # Give some time for nodes to start listening
-    
+    import time
     time.sleep(2)
 
-    node2.connect("127.0.0.1", 8000) # work
-    time.sleep(1)  # Allow connection to establish
+    node2.connect("127.0.0.1", 8000)
+    node2.connect("127.0.0.1", 8002)
+    loop = 1
+    while loop:
+        counter = 1 
+        while(counter): 
+            time.sleep(3)
+            counter = 0
 
-
-    node2.connect("127.0.0.1",8002)# works
-    time.sleep(1)
-    
-    
-
-
-    while True:
         print("1. Send a message")
-        print("2. Send an image")
-        print("3. Broadcast a message")
+        print("2. Broadcast a message")
+        print("3. Send an image")
         print("4. Exit")
         choice = input("Enter your choice: ")
 
@@ -129,21 +130,19 @@ if __name__ == "__main__":
                 print("Target not found.")
 
         elif choice == '2':
-            image_path = input("Enter the path to the image file: ")
-            try:
-                with open(image_path, "rb") as image_file:
-                    image_data = image_file.read()
-                    node2.send_data(b"image:" + image_data, is_image=True)
-            except FileNotFoundError:
-                print("Image file not found.")
-
-        elif choice == '3':
-            
             message = input("Enter broadcast message: ")
             node2.broadcast(f"Broadcast from node2: {message}")
 
+        elif choice == '3':
+            target_ip = input("Enter target IP address: ")
+            target_port = int(input("Enter target port: "))
+            target = next((conn for conn in node2.connections if conn.getpeername() == (target_ip, target_port)), None)
+            node2.send_file(target)
+
         elif choice == '4':
-            break
+            print("Exiting the program")
+            
+            os._exit(0)
 
         else:
-            print("Invalid choice. Please enter 1, 2, 3, or 4.")
+            print("Invalid choice. Please enter 1, 2, or 3.")
